@@ -7,8 +7,6 @@
 package com.example.QuasarUserApp.web.rest;
 
 import com.example.QuasarUserApp.entity.User;
-import com.example.QuasarUserApp.entity.status.Status;
-import com.example.QuasarUserApp.repository.UserRepository;
 import com.example.QuasarUserApp.service.AuthenticationService;
 import com.example.QuasarUserApp.service.dto.LoginUserDto;
 import com.example.QuasarUserApp.service.dto.RefreshTokenDto;
@@ -17,8 +15,6 @@ import com.example.QuasarUserApp.service.dto.UserDto;
 import com.example.QuasarUserApp.service.responce.LoginResponse;
 import com.example.QuasarUserApp.service.responce.RefreshTokenResponse;
 import com.example.QuasarUserApp.service.security.JwtService;
-import jakarta.mail.MessagingException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,34 +22,18 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthenticationController {
     private final JwtService jwtService;
-    private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
 
-    public AuthenticationController(JwtService jwtService, UserRepository userRepository, AuthenticationService authenticationService) {
+    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
         this.jwtService = jwtService;
-        this.userRepository = userRepository;
         this.authenticationService = authenticationService;
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDto> register(@RequestBody RegisterUserDto registerUserDto) throws MessagingException {
+    public ResponseEntity<UserDto> register(@RequestBody RegisterUserDto registerUserDto)  {
         UserDto registeredUser = authenticationService.signup(registerUserDto);
 
         return ResponseEntity.ok(registeredUser);
-    }
-
-    @PostMapping("/verify")
-    public ResponseEntity<String> verifyUser(@RequestParam String code) {
-        User user = userRepository.findByVerificationCode(code);
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid verification code.");
-        }
-        user.setStatus(Status.ACTIVE);
-        user.setVerificationCode(null);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("User verified successfully.");
     }
 
 

@@ -19,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
 
 @Service
 public class AuthenticationService {
@@ -29,45 +28,28 @@ public class AuthenticationService {
     private final UserMapper userMapper;
 
     private final AuthenticationManager authenticationManager;
-    private final EmailService emailService;
 
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder,
-            UserMapper userMapper, EmailService emailService) {
+            UserMapper userMapper) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
-        this.emailService = emailService;
     }
 
     public UserDto signup(RegisterUserDto input) {
         User user = userMapper.toUser(input);
         user.setPassword(passwordEncoder.encode(input.getPassword()));
-        user.setStatus(Status.PENDING);
-
-        String verificationCode = generateVerificationCode();
-        user.setVerificationCode(verificationCode);
+        user.setStatus(Status.ACTIVE);
 
         userRepository.save(user);
-
-
-        sendVerificationEmail(user.getEmail(), verificationCode);
 
         return userMapper.toDto(user);
     }
 
-    private String generateVerificationCode() {
-        return String.format("%06d", new Random().nextInt(999999));
-    }
-
-    private void sendVerificationEmail(String email, String verificationCode) {
-        String subject = "Please verify your email";
-        String body = "Your verification code is: " + verificationCode;
-        emailService.sendEmail(email, subject, body);
-    }
 
     public User authenticate(LoginUserDto input) {
         authenticationManager.authenticate(

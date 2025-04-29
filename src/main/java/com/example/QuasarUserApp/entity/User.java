@@ -34,7 +34,6 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private String verificationCode;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
